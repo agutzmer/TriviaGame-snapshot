@@ -1,11 +1,14 @@
-var winLossBoxText = "<p>Wins: </p><p>Losses: <p>"
-var targetBoxText ="Your target is: ";
-var wins = 0;
-var winsText = "0";
-var losses = 0;
-var lossesText = "0";
-var countDownTimer = 25;
 
+ // global variables 
+
+  var countDownTimer = 25;
+  var itemNumber = 0;
+  var correctResponses = 0;
+  var totalResponses = 0;
+  var timeOutID;
+  var intervalID;
+
+//
 // objects and functions
 //
 var randomizer = { targetNumber: 0, runningTotal: 0, lapisNumber: 0, onyxNumber: 0, quartzNumber: 0, turquoizeNumber: 0,
@@ -33,7 +36,7 @@ var randomizer = { targetNumber: 0, runningTotal: 0, lapisNumber: 0, onyxNumber:
   function displayItem (itemIndex) {
      
    var items = [
-    {"stem":"Which college football team plays in the Big House?", "choice_1":"Alabama  ", "choice_2":"Michegan  ", "choice_3":"Nebraska  ", "choice_4":"USC", "correct":"button_2" },            
+    {"stem":"Which college football team plays in the Big House?", "choice_1":"Alabama  ", "choice_2":"Michigan  ", "choice_3":"Nebraska  ", "choice_4":"USC", "correct":"button_2" },            
     {"stem":"Which pitcher throws a knuckleball?", "choice_1":"Bartolo Colon  ", "choice_2":"Kyle Hendricks  ", "choice_3":"R A Dickey  ", "choice_4":"Clayton Kershaw  ", "correct":"button_3" },  
     {"stem":"Which grand slam event comes first in the year?", "choice_1":"US Open  ", "choice_2":"French Open  ", "choice_3":"Australian Open  ", "choice_4":"Wimbledon  ","correct":"button_3" },  
     {"stem":"Which is a publicly owned franchise", "choice_1":"Cowboys  ", "choice_2":"Giants  ", "choice_3":"Raiders  ", "choice_4":"Packers  ", "correct":"button_4" },  
@@ -48,15 +51,39 @@ var randomizer = { targetNumber: 0, runningTotal: 0, lapisNumber: 0, onyxNumber:
    return (items[itemIndex].correct);
   }
 
-   function displayRunningTotal ( n ) {
-    $("#runningScoreBox").html(n.toString());
-    }
+  // function displayRunningScore ( ) {
+  //  $("#runningScoreBox").html(n.toString());
+  //  }
+
+function displayRunningScore() {
+    var runningScoreText;
+      runningScoreText = "<h3>Your score is: ";
+      runningScoreText = runningScoreText.concat(correctResponses.toString());
+      runningScoreText = runningScoreText.concat(" of ");
+      runningScoreText = runningScoreText.concat(totalResponses.toString());
+      runningScoreText = runningScoreText.concat("</h3>");
+      $("#runningScoreHeader").html(runningScoreText);
+  }
+
+function displayCorrectIncorrect(correct) {
+    var correctIncorrectText;
+      correctIncorrectText = "<h3>";
+      if (correct) {
+        correctIncorrectText = correctIncorrectText.concat("Correct!");
+      }
+      else {
+        correctIncorrectText = correctIncorrectText.concat("Incorrect!");
+      }
+      correctIncorrectText = correctIncorrectText.concat("</h3>");
+      $("#correctIncorrectBox").html(correctIncorrectText);
+  }
 
 
   function oneSecond() {
     var timerText;
-      timerText = "Time remaining: ";
+      timerText = "<h3><p></p>Time remaining: ";
       timerText = timerText.concat(countDownTimer.toString());
+      timerText = timerText.concat("</h3>");
       $("#timer").html(timerText);
       countDownTimer--;
   }
@@ -64,71 +91,62 @@ var randomizer = { targetNumber: 0, runningTotal: 0, lapisNumber: 0, onyxNumber:
   function timeUp(){
     $('#time-left').html('<h2>Time\'s Up!</h2>');
     alert('time is up');
+    clearTimeout(timeOutID);
+    clearInterval(intervalID);
   }
 
 //
 // Begin activity
 //
-  var itemNumber = 0;
- 
+  
 
   $( document ).ready(function() {
 
-  // set an interval counter to count down
-  // set a timeout to end the activity
-  setTimeout(timeUp, 1000 * countDownTimer);
-  var intervalID = setInterval(oneSecond, 1000);
+  // set an interval counter to count down by seconds
+  // set a timeout to end the activity at 25 seconds
 
+  timeOutID = setTimeout(timeUp, 1000 * countDownTimer);
+  intervalID = setInterval(oneSecond, 1000);
+
+  // display the first item
    correctAnswer =  displayItem (itemNumber);
-
 
    $("input").addClass("value");
    $("input").on('click', function() { 
+
+    totalResponses++;
 	
     if (this.id == correctAnswer) {
-      alert ("Yay!");
+      correctResponses++;
+      displayCorrectIncorrect (true);
     }
     else {
-      alert ("Boo!");
+      displayCorrectIncorrect (false);
     }
-    
-	 switch (this.id) {
+    displayRunningScore ();
 
-     case "button_1" :
-      itemNumber++;
-      break;
 
-		 case "button_2" :
-			itemNumber++;
-			break;
-			 
-		case "button_3" :
-			 itemNumber++;
-			 break;	 
- 		
- 		case "button_4" :
-			 itemNumber++;
-			 break;	   		 		
-			 
-		default:
-			break;
-		}
 
-		 if (itemNumber < 5) {
-      correctAnswer = displayItem (itemNumber);
-      document.getElementById(this.id).checked = false;
-     }
-
-     else {
+    if (itemNumber == 4) {
       alert ("Do it again.");
       document.getElementById(this.id).checked = false;
-
-      clearTimeout(intervalID);
-      itemNumber = 0;
+        clearTimeout(timeOutID);
+        clearInterval(intervalID);
+        timeOutID = setTimeout(timeUp, 1000 * countDownTimer);
+        intervalID = setInterval(oneSecond, 1000);
+        countDownTimer = 25;
+        itemNumber = 0;
+        correctResponses = 0;
+        totalResponses = 0;
+        correctAnswer = displayItem (itemNumber);
+     }  
+     else {
+      itemNumber++;
       correctAnswer = displayItem (itemNumber);
+      document.getElementById(this.id).checked = false;
      }
-		
-		
+
+
    } );  // end of onClick
    
    } );  // end of documentReady
